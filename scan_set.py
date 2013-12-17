@@ -9,8 +9,6 @@ import re
 import sys
 import urllib
 #
-import sets
-import tools
 
 SEARCH_URL = "http://gatherer.wizards.com/Pages/Search/Default.aspx?"\
              "page=%(page)s&set=%%5B%%22%(escaped_set_name)s%%22%%5D"\
@@ -21,17 +19,20 @@ URL_RE = re.compile(r"../../Handlers/Image\.ashx\?multiverseid=(\d+)")
 # only pick up cards that have their image shown
 
 ALT_VERSION_RE = \
-  r"../Card/Details\.aspx\?multiverseid=(\d+)\"><img[^>]+set={0}&.*?>"
+  r"../Card/Details\.aspx\?multiverseid=(\d+)\"><img title=\"{0}"
 
 class ScannerError(Exception): pass
+
+def grab_url(url):
+    u = urllib.urlopen(url)
+    data = u.read()
+    u.close()
+    return data
 
 def scan_set(short_set):
     """ Fetch and scan search result pages for the given set until we don't
         find any more new cards. Return a list of card ids. """
-    try:
-        full_set_name = sets.set_info[short_set].name
-    except KeyError:
-        raise ScannerError("Unknown set code: %s" % short_set)
+    full_set_name = short_set
     escaped_set_name = urllib.quote(full_set_name)
     ids = []
     page = 0
@@ -50,16 +51,16 @@ def scan_set(short_set):
         else:
             page += 1
 
-    if len(ids) != sets.set_info[short_set].cards:
-        print "WARNING: Expected %d cards, got %d instead" % (
-              sets.set_info[short_set].cards, len(ids))
+    # if len(ids) != sets.set_info[short_set].cards:
+    #     print "WARNING: Expected %d cards, got %d instead" % (
+    #           sets.set_info[short_set].cards, len(ids))
 
     print "Done;", len(ids), "found"
     return ids
 
 def grab_page(page, escaped_set_name):
     url = SEARCH_URL % locals()
-    return tools.grab_url(url)
+    return grab_url(url)
 
 def scan_page(html, short_set):
     """ Scan the given HTML for URLs to cards, collect their ids, and return
@@ -77,12 +78,12 @@ def scan_page(html, short_set):
 
     # to make things difficult, some sets use aliases here, e.g. 'OD' instead
     # of 'ODY', etc
-    alias = sets.set_info[short_set].alias # may be None
-    if alias:
-        set_re = re.compile(ALT_VERSION_RE.replace('{0}', alias))
-        for match in set_re.finditer(html):
-            id = match.group(1)
-            ids.append(id)
+    # alias = sets.set_info[short_set].alias # may be None
+    # if alias:
+    #     set_re = re.compile(ALT_VERSION_RE.replace('{0}', alias))
+    #     for match in set_re.finditer(html):
+    #         id = match.group(1)
+    #         ids.append(id)
 
     return ids
 

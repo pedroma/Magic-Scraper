@@ -27,28 +27,36 @@ var files = fs.readdirSync('./ids');
 var cards = 0, current = 0;
 var sofar = 0;
 
-var q = Cards.find({}, ['id']);
+//var q = Cards.find({}, ['id']);
+var q = Cards.find();
 q.exec(function(er, records){
-
   for (var x = 0; x < records.length; x++){
     records[x] = parseInt(records[x].id);
   }
 
-
   files.forEach(function(file){
     var lines = fs.readFileSync('./ids/' + file).toString().split('\n');
     lines.forEach(function(line){
+      var card_id = parseInt(line);
       // query db
-      if (!records.has(parseInt(line))){
+      if (card_id && !records.has(card_id)){
         var card = new Card(line);
         var f = file.replace('.txt', '');
         card.get(function(_card){
           // New db record
+
           var card_db = new Cards();
+          if (_card.front.hasOwnProperty("partA")){
+            // this is a flip or split card
+          } else if (_card.front.hasOwnProperty("back")) {
+            // this is a double card
+          } else {
+            // normal card
+          }
           card_db.id = _card.id;
           card_db.front = _card.front;
           card_db.back = _card.back;
-          card_db.setname = f;
+          card_db.set = f;
 
           // if NOT already in db
           card_db.save(function(err){
@@ -67,6 +75,4 @@ q.exec(function(er, records){
     });
   });
 
-
-  console.log(cards);
 });

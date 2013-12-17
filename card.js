@@ -116,6 +116,8 @@ var Card = (function() {
     var othersets = getSets(    format('otherSetsValue', side));
     var text =      getText(    format('textRow',        side) + ' .value .cardtextbox');
     var flavor =    getFlavor(  format('FlavorText',     side) + ' .cardtextbox');
+    var mid = s.card.id;
+    var image = "http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid="+mid+"&type=card";
 
     if (converted !== 'None') converted = parseInt(converted);
 
@@ -140,7 +142,9 @@ var Card = (function() {
       colors:    colors,
       othersets: othersets,
       pt:        pt,
-      artist:    artist
+      artist:    artist,
+      multiverse_id: mid,
+      image: image
     };
 
     return _Card;
